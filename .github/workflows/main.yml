@@ -1,1 +1,39 @@
+name: CodexAgent-WhatsApp-Bot
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *'
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache Session Data
+        id: cache-session
+        uses: actions/cache@v4
+        with:
+          path: session_data
+          key: wa-session-${{ runner.os }}-${{ hashFiles('session_data/**') }}
+          restore-keys: |
+            wa-session-${{ runner.os }}-
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Start AI Bot
+        env:
+          FIREBASE_URL: ${{ secrets.FIREBASE_URL }}
+          PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
+        run: npm start
